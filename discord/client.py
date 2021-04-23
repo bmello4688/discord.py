@@ -401,9 +401,14 @@ class Client:
         if not initial:
             await asyncio.sleep(5.0)
 
-    # login state management
+    async def login(self, token=None, is_bot_token=True, email=None, password=None):
+        if token is None:
+            await self.login_user(email, password)
+        else:
+            await self.login_by_token(token, is_bot_token)
 
-    async def login(self, token):
+    # login state management
+    async def login_by_token(self, token, is_bot_token):
         """|coro|
 
         Logs in the client with the specified credentials.
@@ -426,7 +431,8 @@ class Client:
         """
 
         log.info('logging in using static token')
-        await self.http.static_login(token.strip())
+        await self.http.static_login(token.strip(), is_bot_token)
+
 
     async def login_user(self, email, password):
         """|coro|
@@ -451,9 +457,7 @@ class Client:
         """
 
         log.info('logging in user')
-        token =  await self.http.user_login(email, password)
-
-        return token
+        await self.http.user_login(email, password)
 
     async def connect(self, *, reconnect=True):
         """|coro|
