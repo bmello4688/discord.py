@@ -115,7 +115,7 @@ class HTTPClient:
     def __init__(self, connector=None, *, proxy=None, proxy_auth=None, loop=None, unsync_clock=True):
         self.loop = asyncio.get_event_loop() if loop is None else loop
         self.connector = connector
-        self.__session = None  # filled in static_login
+        self.__session = None  # filled in static_login and user_login
         self._locks = weakref.WeakValueDictionary()
         self._global_over = asyncio.Event()
         self._global_over.set()
@@ -166,7 +166,11 @@ class HTTPClient:
         }
 
         if self.token is not None:
-            headers['Authorization'] = 'Bot ' + self.token
+            if self.bot_token:
+                headers['Authorization'] = 'Bot ' + self.token
+            else:
+                headers['Authorization'] = self.token
+            
         # some checking if it's a JSON request
         if 'json' in kwargs:
             headers['Content-Type'] = 'application/json'
@@ -303,21 +307,30 @@ class HTTPClient:
 
     # login management
 
-    async def static_login(self, token):
-        # Necessary to get aiohttp to stop complaining about session creation
-        self.__session = aiohttp.ClientSession(connector=self.connector, ws_response_class=DiscordClientWebSocketResponse)
-        old_token = self.token
-        self.token = token
-
+    async def get_user_profile(self):
         try:
             data = await self.request(Route('GET', '/users/@me'))
         except HTTPException as exc:
-            self.token = old_token
             if exc.response.status == 401:
                 raise LoginFailure('Improper token has been passed.') from exc
             raise
 
         return data
+
+    async def static_login(self, token, is_bot_token=True):
+        # Necessary to get aiohttp to stop complaining about session creation
+        self.__session = aiohttp.ClientSession(connector=self.connector, ws_response_class=DiscordClientWebSocketResponse)
+        old_token = self.token
+        self.token = token
+        self.bot_token = is_bot_token
+
+        data = await self.get_user_profile()
+
+        if data is None:
+            self.token = old_token
+
+        return data
+        
 
     async def user_login(self, email, password):
         # Necessary to get aiohttp to stop complaining about session creation
@@ -327,12 +340,14 @@ class HTTPClient:
 
         try:
             data = await self.request(Route('POST', '/auth/login'), json=payload)
+
+            self.token = data['token']
         except HTTPException as exc:
             if exc.response.status == 401:
-                raise LoginFailure('Improper token has been passed.') from exc
+                raise LoginFailure('Invalid credentials has been passed.') from exc
             raise
 
-        return data['token']
+        return await self.get_user_profile()
 
     def logout(self):
         return self.request(Route('POST', '/auth/logout'))
