@@ -28,7 +28,7 @@ import itertools
 import sys
 from operator import attrgetter
 
-import discord.abc
+from . import abc
 
 from . import utils
 from .errors import ClientException
@@ -157,10 +157,10 @@ def flatten_user(cls):
 
     return cls
 
-_BaseUser = discord.abc.User
+_BaseUser = abc.User
 
 @flatten_user
-class Member(discord.abc.Messageable, _BaseUser):
+class Member(abc.Messageable, _BaseUser):
     """Represents a Discord member to a :class:`Guild`.
 
     This implements a lot of the functionality of :class:`User`.

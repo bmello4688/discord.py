@@ -319,6 +319,21 @@ class HTTPClient:
 
         return data
 
+    async def user_login(self, email, password):
+        # Necessary to get aiohttp to stop complaining about session creation
+        self.__session = aiohttp.ClientSession(connector=self.connector, ws_response_class=DiscordClientWebSocketResponse)
+
+        payload = {"login":email,"password":password,"undelete":False,"captcha_key":None,"login_source":None,"gift_code_sku_id":None}
+
+        try:
+            data = await self.request(Route('POST', '/auth/login'), json=payload)
+        except HTTPException as exc:
+            if exc.response.status == 401:
+                raise LoginFailure('Improper token has been passed.') from exc
+            raise
+
+        return data['token']
+
     def logout(self):
         return self.request(Route('POST', '/auth/logout'))
 
