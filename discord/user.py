@@ -22,7 +22,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 """
 
-import discord.abc
+from . import abc
 from .flags import PublicUserFlags
 from .utils import snowflake_time, _bytes_to_base64_data
 from .enums import DefaultAvatar, try_enum
@@ -34,7 +34,7 @@ __all__ = (
     'ClientUser',
 )
 
-_BaseUser = discord.abc.User
+_BaseUser = abc.User
 
 
 class BaseUser(_BaseUser):
@@ -276,7 +276,7 @@ class ClientUser(BaseUser):
         self._update(data)
 
 
-class User(BaseUser, discord.abc.Messageable):
+class User(BaseUser, abc.Messageable):
     """Represents a Discord user.
 
     .. container:: operations

@@ -428,6 +428,33 @@ class Client:
         log.info('logging in using static token')
         await self.http.static_login(token.strip())
 
+    async def login_user(self, email, password):
+        """|coro|
+
+        Logs in the client with the specified credentials.
+
+
+        Parameters
+        -----------
+        token: :class:`str`
+            The authentication token. Do not prefix this token with
+            anything as the library will do it for you.
+
+        Raises
+        ------
+        :exc:`.LoginFailure`
+            The wrong credentials are passed.
+        :exc:`.HTTPException`
+            An unknown HTTP related error occurred,
+            usually when it isn't 200 or the known incorrect credentials
+            passing status code.
+        """
+
+        log.info('logging in user')
+        token =  await self.http.user_login(email, password)
+
+        return token
+
     async def connect(self, *, reconnect=True):
         """|coro|
 
