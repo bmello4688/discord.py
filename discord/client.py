@@ -28,6 +28,8 @@ import signal
 import sys
 import traceback
 from typing import Any, Optional, Union
+import os
+import json
 
 import aiohttp
 
@@ -180,6 +182,7 @@ class Client:
         self._listeners = {}
         self.shard_id = options.get('shard_id')
         self.shard_count = options.get('shard_count')
+        self.tokenfile = "token.json"
 
         connector = options.pop('connector', None)
         proxy = options.pop('proxy', None)
@@ -402,10 +405,31 @@ class Client:
             await asyncio.sleep(5.0)
 
     async def login(self, token=None, is_bot_token=True, email=None, password=None):
+
+        #saved token file path
+        tokenfilepath = os.path.join(os.getcwd(), self.tokenfile)
+
+        if token is None and email is None:
+            # Throw an error if the authorization token file doesn't exist.
+            if not os.path.exists(tokenfilepath):
+                raise LoginFailure(f'Authorization token file can not be found at the following location: {tokenfilepath}')
+            
+            # Open the authorization token file in text-mode for reading.
+            with open(tokenfilepath, 'r') as tokenfilestream:
+                tokenfiledata = json.load(tokenfilestream)
+                token = tokenfiledata['token']
+                is_bot_token = tokenfiledata['is_bot']
+            
+
         if token is None:
             await self.login_user(email, password)
         else:
             await self.login_by_token(token, is_bot_token)
+
+        #save token
+        with open(tokenfilepath, 'w') as tokenfilestream:
+            data = {'token': self.http.token, "is_bot": self.http.bot_token}
+            json.dump(data, tokenfilestream, indent=4)
 
     # login state management
     async def login_by_token(self, token, is_bot_token):

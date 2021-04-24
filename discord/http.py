@@ -342,6 +342,7 @@ class HTTPClient:
             data = await self.request(Route('POST', '/auth/login'), json=payload)
 
             self.token = data['token']
+            
         except HTTPException as exc:
             if exc.response.status == 401:
                 raise LoginFailure('Invalid credentials has been passed.') from exc
