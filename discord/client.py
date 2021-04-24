@@ -602,7 +602,7 @@ class Client:
         self._connection.clear()
         self.http.recreate()
 
-    async def start(self, token, *, reconnect=True):
+    async def start(self, token=None, is_bot_token=True, email=None, password=None, *, reconnect=True):
         """|coro|
 
         A shorthand coroutine for :meth:`login` + :meth:`connect`.
@@ -612,7 +612,7 @@ class Client:
         TypeError
             An unexpected keyword argument was received.
         """
-        await self.login(token)
+        await self.login(token, is_bot_token, email, password)
         await self.connect(reconnect=reconnect)
 
     def run(self, *args, **kwargs):
