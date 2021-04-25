@@ -182,7 +182,7 @@ class Client:
         self._listeners = {}
         self.shard_id = options.get('shard_id')
         self.shard_count = options.get('shard_count')
-        self.tokenfile = "token.json"
+        self.tokenfile = "discord_token.json"
 
         connector = options.pop('connector', None)
         proxy = options.pop('proxy', None)
