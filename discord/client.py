@@ -412,13 +412,16 @@ class Client:
         if token is None and email is None:
             # Throw an error if the authorization token file doesn't exist.
             if not os.path.exists(tokenfilepath):
-                raise LoginFailure(f'Authorization token file can not be found at the following location: {tokenfilepath}')
-            
-            # Open the authorization token file in text-mode for reading.
-            with open(tokenfilepath, 'r') as tokenfilestream:
-                tokenfiledata = json.load(tokenfilestream)
-                token = tokenfiledata['token']
-                is_bot_token = tokenfiledata['is_bot']
+                email = os.environ.get('DISCORD_EMAIL')
+                password = os.getenv('DISCORD_PASSWORD')
+                if email is None or password is None:
+                    raise LoginFailure(f'User login credentials not set.')
+            else:
+                # Open the authorization token file in text-mode for reading.
+                with open(tokenfilepath, 'r') as tokenfilestream:
+                    tokenfiledata = json.load(tokenfilestream)
+                    token = tokenfiledata['token']
+                    is_bot_token = tokenfiledata['is_bot']
             
 
         if token is None:
