@@ -346,6 +346,8 @@ class HTTPClient:
         except HTTPException as exc:
             if exc.response.status == 401:
                 raise LoginFailure('Invalid credentials has been passed.') from exc
+            if exc.response.status == 400:
+                raise LoginFailure('Discord needs captcha or location verification. Login through app manually before trying again.') from exc
             raise
 
         return await self.get_user_profile()
